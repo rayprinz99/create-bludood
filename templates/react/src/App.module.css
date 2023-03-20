@@ -1,0 +1,41 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.logo {
+  height: 128px;
+  padding: 0 32px;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 32px #0064ff);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 32px #61dbfb);
+}
+
+.logo.bludood {
+  border-radius: 50%;
+}
+
+@keyframes logo-spin {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .logo.react {
+    animation: logo-spin infinite 20s forwards linear;
+  }
+}
