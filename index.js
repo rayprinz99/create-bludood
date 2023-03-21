@@ -8,15 +8,14 @@ import pth from 'path'
 import child_process from 'child_process'
 
 import prompts from 'prompts'
-import minimist from 'minimist'
 import kleur from 'kleur'
 import cliSpinners from 'cli-spinners'
 
 const dirname = url.fileURLToPath(import.meta.url + '/..')
-const argv = minimist(process.argv.slice(2))
+const argv = process.argv.slice(2)
 
 const projectName =
-  argv._[0] ||
+  argv[0] ||
   (
     await prompts(
       {
@@ -48,7 +47,7 @@ const templates = [
 ]
 
 const selected =
-  argv._[1] ||
+  argv[1] ||
   (
     await prompts(
       {
