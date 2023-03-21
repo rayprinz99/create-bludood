@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
-import fs from 'fs'
+import fs from 'fs/promises'
+// why isn't this synchronous
+import { existsSync } from 'fs'
 import url from 'url'
 import pth from 'path'
+import child_process from 'child_process'
 
 import prompts from 'prompts'
 import minimist from 'minimist'
 import kleur from 'kleur'
+import cliSpinners from 'cli-spinners'
 
 const dirname = url.fileURLToPath(import.meta.url + '/..')
 const argv = minimist(process.argv.slice(2))
@@ -69,7 +73,7 @@ if (!templates.find(a => a.value === selected)) {
 const src = pth.join(dirname, 'templates', selected)
 const dest = pth.join(process.cwd(), projectName)
 
-if (dirExists(dest) && argv._[0] !== '.') {
+if ((await dirExists(dest)) && projectName !== '.') {
   const { overwrite } = await prompts({
     message: 'Directory exists. Overwrite?',
     type: 'confirm',
@@ -77,13 +81,13 @@ if (dirExists(dest) && argv._[0] !== '.') {
     name: 'overwrite'
   })
   if (overwrite) {
-    removeDir(dest)
+    await removeDir(dest)
   } else {
     process.exit(0)
   }
 }
 
-if (argv._[0] === '.' && fs.readdirSync(dest).length !== 0) {
+if (projectName === '.' && (await fs.readdir(dest)).length !== 0) {
   const { overwrite } = await prompts({
     message: 'Current directory has contents. Overwrite?',
     type: 'confirm',
@@ -91,41 +95,93 @@ if (argv._[0] === '.' && fs.readdirSync(dest).length !== 0) {
     name: 'overwrite'
   })
   if (overwrite) {
-    for (const file of fs.readdirSync(dest)) {
+    for (const file of await fs.readdir(dest)) {
       if (file === '.git') continue
-      fs.rmSync(pth.join(dest, file), { recursive: true })
+      await fs.rm(pth.join(dest, file), { recursive: true })
     }
   } else {
     process.exit(0)
   }
 }
 
-fs.cpSync(src, dest, {
-  recursive: true
+await makeLoader('Copying files...', async () => {
+  await fs.cp(src, dest, {
+    recursive: true
+  })
+  return 'Copied files!'
 })
 
-editPackage()
+await makeLoader('Modifying package.json...', async () => {
+  await editPackage()
+  return 'Modified package.json!'
+})
 
-console.log(`${kleur.green('√')} Done!`)
-console.log('To run your project, please execute these commands:\n')
-console.log(`  cd ${projectName}\n  npm install\n  npm run dev\n`)
+const { install } = await prompts({
+  message: 'Would you like to install dependencies?',
+  type: 'confirm',
+  initial: true,
+  name: 'install'
+})
 
-function dirExists(path) {
-  if (!fs.existsSync(path)) return false
-  if (fs.lstatSync(path).isFile()) return false
+if (install) {
+  await new Promise(r => {
+    const stopLoader = makeLoader('Installing dependencies...')
+    const cmd = child_process.exec('npm install', {
+      cwd: dest
+    })
+    cmd.on('exit', () => {
+      stopLoader('Installed dependencies!')
+      r()
+    })
+  })
+}
+
+console.log(`\nTo run your project, please execute ${projectName === '.' && install ? 'this command' : 'these commands'}:\n`)
+console.log(`${projectName !== '.' ? `  cd ${projectName}\n` : ''}${!install ? '  npm install\n' : ''}  npm run dev\n`)
+
+async function dirExists(path) {
+  if (!existsSync(path)) return false
+  if ((await fs.lstat(path)).isFile()) return false
   return true
 }
 
-function removeDir(path) {
-  return fs.rmSync(path, { recursive: true })
+async function removeDir(path) {
+  return await fs.rm(path, { recursive: true })
 }
 
-function editPackage() {
-  const pkg = JSON.parse(fs.readFileSync(pth.join(dest, 'package.json')))
+async function editPackage() {
+  const pkg = JSON.parse(await fs.readFile(pth.join(dest, 'package.json')))
   if (projectName === '.') {
     pkg.name = pth.parse(dest).name
   } else {
     pkg.name = projectName
   }
-  fs.writeFileSync(pth.join(dest, 'package.json'), JSON.stringify(pkg, null, 2))
+  await fs.writeFile(pth.join(dest, 'package.json'), JSON.stringify(pkg, null, 2))
+}
+
+function makeLoader(text, func = null) {
+  let current = 0
+  const loader = setInterval(() => {
+    if (cliSpinners.dots.frames.length <= current) current = 0
+    process.stdout.clearLine(0)
+    process.stdout.cursorTo(0)
+    process.stdout.write(`${cliSpinners.dots.frames[current]} ${kleur.bold(text)}`)
+    current++
+  }, cliSpinners.dots.interval)
+  if (func) {
+    return new Promise(async r => {
+      const doneText = await func()
+      clearInterval(loader)
+      process.stdout.clearLine(0)
+      process.stdout.cursorTo(0)
+      console.log(`${kleur.green('√')} ${kleur.bold(doneText)}`)
+      r()
+    })
+  } else
+    return doneText => {
+      clearInterval(loader)
+      process.stdout.clearLine(0)
+      process.stdout.cursorTo(0)
+      console.log(`${kleur.green('√')} ${kleur.bold(doneText)}`)
+    }
 }
