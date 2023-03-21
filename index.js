@@ -90,7 +90,7 @@ if ((await dirExists(dest)) && projectName !== '.') {
   }
 }
 
-if (projectName === '.' && (await fs.readdir(dest)).length !== 0) {
+if (projectName === '.' && (await fs.readdir(dest)).filter(a => a !== '.git').length !== 0) {
   const { overwrite } = await prompts({
     message: 'Current directory has contents. Overwrite?',
     type: 'confirm',
