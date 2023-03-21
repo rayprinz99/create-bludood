@@ -31,6 +31,8 @@ const projectName =
     )
   ).projectName
 
+if (argv[0]) console.log(`${kleur.green('√')} ${kleur.bold('Project name:')} ${kleur.gray('...')} ${argv[0]}`)
+
 const templates = [
   {
     title: 'React',
@@ -65,9 +67,11 @@ const selected =
   ).selected
 
 if (!templates.find(a => a.value === selected)) {
-  console.log(`${kleur.red('×')} Template ${selected} was not found.`)
+  console.log(`${kleur.red('×')} ${kleur.bold(`Template ${selected} was not found.`)}`)
   process.exit(0)
 }
+
+if (argv[1]) console.log(`${kleur.green('√')} ${kleur.bold('Choose a template...')} ${kleur.gray('»')} ${templates.find(a => a.value === selected).title}`)
 
 const src = pth.join(dirname, 'templates', selected)
 const dest = pth.join(process.cwd(), projectName)
