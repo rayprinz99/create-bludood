@@ -1,0 +1,32 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.logo {
+  height: 128px;
+  width: 128px;
+  margin: 0 32px;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 32px #0064ff);
+}
+
+.logo.next {
+  background-color: white;
+  border-radius: 50%;
+}
+
+.logo.next:hover {
+  filter: drop-shadow(0 0 32px black);
+}
+
+.logo.bludood {
+  border-radius: 50%;
+}

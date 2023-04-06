@@ -16,6 +16,10 @@ This template creates a basic Vite + React + React Router app, including one rou
 
 This template creates a simple API using Express
 
+### Next
+
+This template creates a basic NextJS application with a custom app component
+
 ## Usage
 
 `npm create bludood@latest`
