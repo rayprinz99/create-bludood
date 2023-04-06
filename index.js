@@ -45,6 +45,10 @@ const templates = [
   {
     title: 'Express',
     value: 'express'
+  },
+  {
+    title: 'Next.js',
+    value: 'next'
   }
 ]
 

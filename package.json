@@ -1,6 +1,6 @@
 {
   "name": "create-bludood",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A package that lets you create new projects based on templates I use frequently.",
   "type": "module",
   "main": "index.js",
